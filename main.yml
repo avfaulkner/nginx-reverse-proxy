@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false
+  vars_files:
+    vars/main.yml
+
+  tasks:
+    - name: Install nginx
+      package:
+        name: nginx
+        state: present
+
+    - name: Enable nginx
+      systemd:
+        name: nginx
+        enabled: true
+
+    - name: Add nginx.conf.j2
+      template:
+        src: nginx.conf.j2
+        dest: "{{ nginx_conf_dest }}"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Add ssl cert
+      copy:
+        src: files/wildcard.crt
+        dest: "{{ssl_certificate}}"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Add ssl cert key
+      copy:
+        src: files/wildcard.key
+        dest: "{{ssl_certificate_key}}"
+        owner: root
+        group: root
+        mode: 0644
