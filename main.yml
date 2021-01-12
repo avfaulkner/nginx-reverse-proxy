@@ -6,36 +6,44 @@
     vars/main.yml
 
   tasks:
-    - name: Install nginx
-      package:
-        name: nginx
-        state: present
+   - name: Install nginx
+     package:
+       name: nginx
+       state: present
 
-    - name: Enable nginx
-      systemd:
-        name: nginx
-        enabled: true
+   - name: Enable nginx
+     systemd:
+       name: nginx
+       enabled: true
+
+   - name: Add ssl cert
+     copy:
+       src: files/wildcard.crt
+       dest: "{{ssl_certificate}}"
+       owner: root
+       group: root
+       mode: 0644
+
+   - name: Add ssl cert key
+     copy:
+       src: files/wildcard.key
+       dest: "{{ssl_certificate_key}}"
+       owner: root
+       group: root
+       mode: 0644
+
+    - name: Input public IP into nginx.conf
+      shell: dig +short myip.opendns.com @resolver1.opendns.com
+      register: public_ip
+
+    - name: Create public ip dynamic variable
+      vars:
+        public_ip: "{{public_ip.outputs.value}}"
 
     - name: Add nginx.conf.j2
       template:
         src: nginx.conf.j2
         dest: "{{ nginx_conf_dest }}"
-        owner: root
-        group: root
-        mode: 0644
-
-    - name: Add ssl cert
-      copy:
-        src: files/wildcard.crt
-        dest: "{{ssl_certificate}}"
-        owner: root
-        group: root
-        mode: 0644
-
-    - name: Add ssl cert key
-      copy:
-        src: files/wildcard.key
-        dest: "{{ssl_certificate_key}}"
         owner: root
         group: root
         mode: 0644
